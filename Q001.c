@@ -31,8 +31,7 @@ void empilhar(Pilha *p, int valor){
 
     novo->valor = valor;
     novo->prox = p->topo;
-    p->topo = novo;
-    
+    p->topo = novo;   
 }
 
 int desempilhar(Pilha *p){
@@ -59,9 +58,6 @@ void imprimirPilha(Pilha *p){
 
     No *aux = p->topo;
 
-    printf("\n");
-    printf("\t         ----- Pilha -----\n");
-
     while(aux != NULL){
         printf("\t                 %d\n", aux->valor);
         aux = aux->prox;
@@ -77,31 +73,32 @@ void imprimirPilha(Pilha *p){
 
 void somarPilhas(Pilha *p1, Pilha *p2, Pilha *resultado){
 
-    if(p1->topo == NULL || p2->topo == NULL){
-        printf("Uma das pilhas esta vazia!\n");
+    if(p1->topo == NULL && p2->topo == NULL){
+        printf("As duas pilhas estao vazias!\n");
         return;
     }
 
-    int decimal = 0;
+    int vaiUm = 0, soma, resto;
 
-    while(p1->topo != NULL || p2->topo != NULL || decimal != 0){
+    while(p1->topo != NULL || p2->topo != NULL || vaiUm != 0){
 
-        int v1 = desempilhar(p1);
-        int v2 = desempilhar(p2);
-        
-        int soma = v1 + v2 + decimal;
+        int v1 = 0;
+        if (p1->topo != NULL) {
+            v1 = desempilhar(p1);
+        }
+        int v2 = 0;
+        if (p2->topo != NULL) {
+            v2 = desempilhar(p2);
+        }
 
-        int resto = soma % 10;
-
-        decimal = soma / 10;
-
+        soma = v1 + v2 + vaiUm;
+        resto = soma % 10;
+        vaiUm = soma / 10;
         empilhar(resultado, resto);
     }
 }
 
 int main(){
-
-    No *remover;
 
     Pilha pilha1, pilha2, resultado;
 
@@ -136,18 +133,37 @@ int main(){
                 printf("\t   +-------------------------+\n");
                 printf("\t   > Informe a pilha: ");
                 scanf("%d", &op);
-                printf("\t   > Informe o valor: ");
-                scanf("%d", &valor);
+                getchar();
 
                 if(op == 1){
+                    printf("\t   > Informe o valor(1 a 9): ");
+                    scanf("%d", &valor);
+                    if(valor < 1 || valor > 9){
+                        printf("\t   > Valor invalido! Informe um numero entre 1 e 9.\n");
+                        printf("\t   > Pressione ENTER para continuar...");
+                        getchar(); 
+                        getchar();
+                        break;
+                    }
                     empilhar(&pilha1, valor);
                 }else if(op == 2){
-                    empilhar(&pilha2, valor);
+                    printf("\t   > Informe o valor(1 a 9): ");
+                    scanf("%d", &valor);
+                    if(valor < 1 || valor > 9){
+                        printf("\t   > Valor invalido! Informe um numero entre 1 e 9.\n");
+                        printf("\t   > Pressione ENTER para continuar...");
+                        getchar();
+                        getchar();
+                        break;
+                    }
+                    empilhar(&pilha2, valor); 
                 }else {
-                    printf("\t> Opcao invalida!\n");
+                    printf("\t   > Opcao invalida!\n");
+                    printf("\t   > Pressione ENTER para continuar...");
+                    getchar();
+                    getchar();
+                    break;
                 }
-
-                break;
 
             case 2:
                 printf("\n\n");
@@ -175,6 +191,9 @@ int main(){
                     }
                 }else{
                     printf("\t   > Opcao invalida!\n");
+                    printf("\t   > Pressione ENTER para continuar...");
+                    getchar();
+                    getchar();
                 }
                 
                 break;
@@ -193,29 +212,40 @@ int main(){
                 scanf("%d", &op);
                 
                 if(op == 1){
+                    printf("\n\n\t         ----- Pilha 1 ----\n");
                     imprimirPilha(&pilha1);
                 }else if(op == 2){
+                    printf("\n\n\t         ----- Pilha 2 ----\n");
                     imprimirPilha(&pilha2);
                 }else{
                     printf("\t   > Opcao invalida!\n");
+                    printf("\t   > Pressione ENTER para continuar...");
+                    getchar();
+                    getchar();
+
                 }
 
                 break;
 
             case 5:
+                printf("\n\n\t         ----- Resultado -----\n");
                 imprimirPilha(&resultado);
                 break;
 
             case 6:
-                printf("\t   > Saindo...\n");;
+                printf("\t> Saindo...\n");
                 break;
 
             default:
 
                 printf("\t      > Opcao invalida!\n");
+                printf("\t      > Pressione ENTER para continuar...");
+                getchar();
+                getchar();
+
         }
 
     }while(op != 6);
 
     return 0;
-}
+}   
