@@ -34,30 +34,31 @@ void enfileirar(Fila *f, int id, int tam){
 
     No *novo = (No*) malloc(sizeof(No));
 
-   if(novo){
-    novo->id = id;
-    novo->tamanho_bytes = tam;
-    novo->proximo = NULL;
+    if(novo){
+    
+        novo->id = id;
+        novo->tamanho_bytes = tam;
+        novo->proximo = NULL;
 
-    if(f->inicio == NULL){
-        f->inicio = novo;
-        f->fim = novo;
+        if(f->inicio == NULL){
+            f->inicio = novo;
+            f->fim = novo;
+        }else{
+            f->fim->proximo = novo;
+            f->fim = novo;
+        }
+        f->total_pacotes++;
     }else{
-        f->fim->proximo = novo;
-        f->fim = novo;
+        printf("Erro ao alocar memoria!\n");
     }
-    f->total_pacotes++;
-   }else{
-    printf("Erro ao alocar memoria!\n");
-   }
 
 }
 
-No* desenfileirar(Fila *f){
+void desenfileirar(Fila *f, int *id, int *tam){
 
     if(f->inicio == NULL){
         printf("fila vazia!\n");
-        return NULL;
+        return;
     }
 
     No *remover = f->inicio;
@@ -68,7 +69,10 @@ No* desenfileirar(Fila *f){
         f->fim = NULL;
     }
 
-    return remover;
+    *id = remover->id;
+    *tam = remover->tamanho_bytes;
+
+    free(remover);
 }
 
 int main(){
@@ -76,7 +80,7 @@ int main(){
     Fila fila;
     criarFila(&fila);
 
-    int tamArq, tamPac = 1024;
+    int tamArq, tamPac = 1024, id = 1;
 
     printf("\t+---------------------------------------+\n");
     printf("\t| Simulador de Distribuicao de Arquivos |\n");
@@ -85,37 +89,39 @@ int main(){
     scanf("%d", &tamArq);
     getchar();
 
-    int resto = tamArq;
-    int id = 1;
-
-    while(resto > 0){
+    while(tamArq > 0){
     
         int tamPacAtual;
 
-        if(resto >= tamPac){
+        if(tamArq >= tamPac){
             tamPacAtual = tamPac;
         }else{
-            tamPacAtual = resto;
+            tamPacAtual = tamArq;
         }
 
         enfileirar(&fila, id, tamPacAtual);
-        resto -= tamPacAtual;
+        tamArq -= tamPacAtual;
         id++;
     }
 
-    int total = fila.total_pacotes;
-    printf("\nO arquivo foi dividido em %d pacote(s).\n", total);
+    printf("\nO arquivo foi dividido em %d pacote(s).\n", fila.total_pacotes);
     printf("Todos os pacotes estao na fila de transmissao.\n");
     printf("Pressione ENTER para comecar a enviar pelo canal...");
     getchar();
 
     printf("\n");
 
+    int total = fila.total_pacotes;
+
     while(fila.total_pacotes > 0){
-        No *pacote = desenfileirar(&fila);
-        printf("| Enviando pacote ID: %d, Tamanho: %d bytes |\n", pacote->id, pacote->tamanho_bytes);
-        printf("[CANAL]: Transportando pacote %d/%d (%d bytes)...\n", pacote->id, total, pacote->tamanho_bytes);
-       printf("\n[PROCESSO]: [");
+
+        int idAtual, tamAtual;
+        desenfileirar(&fila, &idAtual, &tamAtual);
+        
+        printf("| Enviando pacote ID: %d, Tamanho: %d bytes |\n", idAtual, tamAtual);
+        printf("[CANAL]: Transportando pacote %d/%d...\n", idAtual, total);
+
+        printf("\n[PROCESSO]: [");
         for(int i = 0; i < 35; i++){
             printf("|");
             
@@ -123,7 +129,6 @@ int main(){
         }
         printf("]\n");
 
-        free(pacote);
         printf("\n[DESTINO]: Recebido!\n");
 
         printf("\nPressione ENTER para o proximo pacote");
