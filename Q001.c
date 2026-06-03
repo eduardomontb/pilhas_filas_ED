@@ -22,7 +22,7 @@ void criarPilha(Pilha *p){
 
 void empilhar(Pilha *p, int valor){
 
-    No *novo = (No*)malloc(sizeof(No));
+    No *novo = (No*) malloc(sizeof(No));
 
     if(novo == NULL){
         printf("Erro ao alocar memoria!\n");
@@ -78,9 +78,9 @@ void somarPilhas(Pilha *p1, Pilha *p2, Pilha *resultado){
         return;
     }
 
-    int vaiUm = 0, soma, resto;
+    int sobe = 0, soma, resto;
 
-    while(p1->topo != NULL || p2->topo != NULL || vaiUm != 0){
+    while(p1->topo != NULL || p2->topo != NULL || sobe != 0){
 
         int v1 = 0;
         if (p1->topo != NULL) {
@@ -91,9 +91,9 @@ void somarPilhas(Pilha *p1, Pilha *p2, Pilha *resultado){
             v2 = desempilhar(p2);
         }
 
-        soma = v1 + v2 + vaiUm;
+        soma = v1 + v2 + sobe;
         resto = soma % 10;
-        vaiUm = soma / 10;
+        sobe = soma / 10;
         empilhar(resultado, resto);
     }
 }
@@ -106,7 +106,7 @@ int main(){
     criarPilha(&pilha2);
     criarPilha(&resultado);
 
-    int op, valor;
+    int op, op2, valor;
 
     do{
         system("cls");
@@ -132,25 +132,25 @@ int main(){
                 printf("\t   | Pilha 2.............[2] |\n");
                 printf("\t   +-------------------------+\n");
                 printf("\t   > Informe a pilha: ");
-                scanf("%d", &op);
+                scanf("%d", &op2);
                 getchar();
 
-                if(op == 1){
-                    printf("\t   > Informe o valor(1 a 9): ");
+                if(op2 == 1){
+                    printf("\t   > Informe o valor(0 a 9): ");
                     scanf("%d", &valor);
-                    if(valor < 1 || valor > 9){
-                        printf("\t   > Valor invalido! Informe um numero entre 1 e 9.\n");
+                    if(valor < 0 || valor > 9){
+                        printf("\t   > Valor invalido! Informe um numero entre 0 e 9.\n");
                         printf("\t   > Pressione ENTER para continuar...");
                         getchar(); 
                         getchar();
                         break;
                     }
                     empilhar(&pilha1, valor);
-                }else if(op == 2){
-                    printf("\t   > Informe o valor(1 a 9): ");
+                }else if(op2 == 2){
+                    printf("\t   > Informe o valor(0 a 9): ");
                     scanf("%d", &valor);
-                    if(valor < 1 || valor > 9){
-                        printf("\t   > Valor invalido! Informe um numero entre 1 e 9.\n");
+                    if(valor < 0 || valor > 9){
+                        printf("\t   > Valor invalido! Informe um numero entre 0 e 9.\n");
                         printf("\t   > Pressione ENTER para continuar...");
                         getchar();
                         getchar();
@@ -165,6 +165,8 @@ int main(){
                     break;
                 }
 
+                break;
+
             case 2:
                 printf("\n\n");
                 printf("\t   +---- menu desempilhar ----+\n");
@@ -173,16 +175,16 @@ int main(){
                 printf("\t   +--------------------------+\n");
 
                 printf("\t   > Informe a pilha: ");
-                scanf("%d", &op);
+                scanf("%d", &op2);
 
-                if (op == 1){
+                if (op2 == 1){
                     valor = desempilhar(&pilha1);
                     if(valor != 0){
                         printf("\t   > Valor desempilhado: %d\n", valor);
                     }else{
                         printf("\t   > Pilha 1 esta vazia!\n");
                     }
-                }else if (op == 2){
+                }else if (op2 == 2){
                     valor = desempilhar(&pilha2);
                     if(valor != 0){
                         printf("\t   > Valor desempilhado: %d\n", valor);
@@ -209,12 +211,13 @@ int main(){
                 printf("\t   | Pilha 2.............[2] |\n");
                 printf("\t   +-------------------------+\n");
                 printf("\t   > Informe a pilha: ");
-                scanf("%d", &op);
+                scanf("%d", &op2);
+                getchar();
                 
-                if(op == 1){
+                if(op2 == 1){
                     printf("\n\n\t         ----- Pilha 1 ----\n");
                     imprimirPilha(&pilha1);
-                }else if(op == 2){
+                }else if(op2 == 2){
                     printf("\n\n\t         ----- Pilha 2 ----\n");
                     imprimirPilha(&pilha2);
                 }else{
