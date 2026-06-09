@@ -1,26 +1,35 @@
-    /*
-
-          Faça um programa baseado no conceito de pilhas para somar dois números.
-
-    */
-    
 #include <stdio.h>
 #include <stdlib.h>
+#include <windows.h>
+
+#define GRN "\e[0;32m"
+#define RED "\e[0;31m"
+#define YEL "\e[0;33m"
+#define BLU "\e[0;34m"
+#define MAG "\e[0;35m"
+#define CYN "\e[0;36m"
+#define WHT "\e[0;37m"
+
+#define RESETE "\e[0m"
 
 typedef struct no{
+
     int valor;
     struct no *prox;
 }No;
 
-typedef struct pilha{
-    No *topo;
-}Pilha;
+No *aux;
 
-void criarPilha(Pilha *p){
-    p->topo = NULL;
+int contC = 30;
+
+void gotoxy(int x, int y) {
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
-void empilhar(Pilha *p, int valor){
+void empilhar(No *p, int valor){
 
     No *novo = (No*) malloc(sizeof(No));
 
@@ -30,225 +39,175 @@ void empilhar(Pilha *p, int valor){
     }
 
     novo->valor = valor;
-    novo->prox = p->topo;
-    p->topo = novo;   
+    novo->prox = p->prox;
+    p->prox = novo;
+
 }
 
-int desempilhar(Pilha *p){
+int desempilhar(No *p){
 
-    if(p->topo == NULL){
+    if(p->prox == NULL){
         printf("pilha vazia!\n");
         return 0;
     }
 
-    No *remover = p->topo;
-    int valorRemovido = remover->valor;
-    p->topo = remover->prox;
-    free(remover);
+    aux = p->prox;
+    int valorRemovido = aux->valor;
+    p->prox = aux->prox;
+    free(aux);
 
     return valorRemovido;
 }
 
-void imprimirPilha(Pilha *p){
+void imprimirPilha(No *p){
 
-    if(p->topo == NULL){
-        printf("\t   >pilha vazia!\n");
+    int contL = 14;
+    if(p->prox == NULL){
+        printf("\npilha vazia");
         return;
+    }else{
+        aux = p->prox;
+        
+        while(aux != NULL){
+            gotoxy(contC, contL);
+            printf("%d\n", aux->valor);
+            aux = aux->prox;
+            contL++;
+        }
     }
 
-    No *aux = p->topo;
-
-    while(aux != NULL){
-        printf("\t                 %d\n", aux->valor);
-        aux = aux->prox;
-    }
-
-    printf("\t         --- Fim pilha ---\n");
-
-    printf("\n\t   Pressione ENTER para continuar...");
-    getchar();
-    getchar();
-    
+    contC = contC + 6;
 }
 
-void somarPilhas(Pilha *p1, Pilha *p2, Pilha *resultado){
+void preencherPilha(No *p, int valor){
 
-    if(p1->topo == NULL && p2->topo == NULL){
+    No temp;
+    temp.prox = NULL;
+
+    if (valor == 0){
+        empilhar(p, 0);
+        return;
+    }else{
+        while(valor > 0){
+            int resto = valor % 10;
+            empilhar(&temp, resto);
+            valor = valor / 10;
+        }
+
+        while(temp.prox != NULL){
+            int digito = desempilhar(&temp);
+            empilhar(p, digito);
+        }
+    }
+}
+
+void somar(No *p1, No *p2, No *r){
+
+    if(p1->prox == NULL && p2->prox == NULL){
         printf("As duas pilhas estao vazias!\n");
         return;
     }
 
     int sobe = 0, soma, resto;
 
-    while(p1->topo != NULL || p2->topo != NULL || sobe != 0){
+    while(p1->prox != NULL || p2->prox != NULL || sobe != 0){
 
         int v1 = 0;
-        if (p1->topo != NULL) {
+        if (p1->prox != NULL) {
             v1 = desempilhar(p1);
         }
         int v2 = 0;
-        if (p2->topo != NULL) {
+        if (p2->prox != NULL) {
             v2 = desempilhar(p2);
         }
 
         soma = v1 + v2 + sobe;
         resto = soma % 10;
         sobe = soma / 10;
-        empilhar(resultado, resto);
+        empilhar(r, resto);
     }
+
+}
+
+void imprimirResultado(No *p){
+
+    if(p->prox == NULL){
+        printf("\npilha vazia!");
+    }else{
+        aux = p->prox;
+        while(aux){
+            printf("%d", aux->valor);
+            aux = aux->prox;
+        }
+    }
+}
+
+void visual(){
+
+    gotoxy(20,3);
+    printf(CYN "***********************************");
+    gotoxy(20,4);
+    printf("*      "BLU "CALCULADORA DE PILHAS" RESETE"      "CYN "*");
+    gotoxy(20,5);
+    printf("***********************************");
+    gotoxy(20,6);
+    printf("***********************************");
+    gotoxy(20,7);
+    printf("*       "YEL "DIGITE DOIS NUMEROS" RESETE"       "CYN "*");
+    gotoxy(20,8);
+    printf("*   "GRN "P1:" RESETE"                           "CYN "*");
+    gotoxy(20,9);
+    printf("*   "RED "P2:" RESETE"                           "CYN "*");
+    gotoxy(20,10);
+    printf("*                                 *");
+    gotoxy(20,11);
+    printf("***********************************" RESETE);
+
 }
 
 int main(){
 
-    Pilha pilha1, pilha2, resultado;
+    No p1, p2, r;
 
-    criarPilha(&pilha1);
-    criarPilha(&pilha2);
-    criarPilha(&resultado);
+    p1.prox = NULL;
+    p2.prox = NULL;
+    r.prox = NULL;
 
-    int op, op2, valor;
+    int num1, num2;
 
-    do{
-        system("cls");
-        printf("\t+------------- MENU ------------+\n");
-        printf("\t|  Empilhar................[1]  |\n");
-        printf("\t|  Desempilhar.............[2]  |\n");
-        printf("\t|  Somar pilhas............[3]  |\n");
-        printf("\t|  Imprimir pilha..........[4]  |\n");
-        printf("\t|  Imprimir resultado......[5]  |\n");
-        printf("\t|  Sair....................[6]  |\n");
-        printf("\t+-------------------------------+\n");
+    visual();
 
-        printf("\t> Informe a opcao: ");
-        scanf("%d",&op);
-        getchar();
+    gotoxy(28, 8);
+    scanf("%d", &num1);
+    
+    gotoxy(28, 9);
+    scanf("%d", &num2);
+    
+    preencherPilha(&p1, num1);
+    gotoxy(contC, 12);
+    printf(GRN"v"RESETE);
+    imprimirPilha(&p1);
+   
+   
 
-        switch(op){
+    preencherPilha(&p2, num2);
+    gotoxy(contC, 12);
+    printf(RED"v"RESETE);
+    imprimirPilha(&p2);
 
-            case 1:
-                printf("\n\n");
-                printf("\t   +----- menu empilhar -----+\n");
-                printf("\t   | Pilha 1.............[1] |\n");
-                printf("\t   | Pilha 2.............[2] |\n");
-                printf("\t   +-------------------------+\n");
-                printf("\t   > Informe a pilha: ");
-                scanf("%d", &op2);
-                getchar();
+    somar(&p1,&p2,&r);
+    gotoxy(33, 14);
+    printf("+");
+    gotoxy(39, 14);
+    printf("=");
 
-                if(op2 == 1){
-                    printf("\t   > Informe o valor(0 a 9): ");
-                    scanf("%d", &valor);
-                    if(valor < 0 || valor > 9){
-                        printf("\t   > Valor invalido! Informe um numero entre 0 e 9.\n");
-                        printf("\t   > Pressione ENTER para continuar...");
-                        getchar(); 
-                        getchar();
-                        break;
-                    }
-                    empilhar(&pilha1, valor);
-                }else if(op2 == 2){
-                    printf("\t   > Informe o valor(0 a 9): ");
-                    scanf("%d", &valor);
-                    if(valor < 0 || valor > 9){
-                        printf("\t   > Valor invalido! Informe um numero entre 0 e 9.\n");
-                        printf("\t   > Pressione ENTER para continuar...");
-                        getchar();
-                        getchar();
-                        break;
-                    }
-                    empilhar(&pilha2, valor); 
-                }else {
-                    printf("\t   > Opcao invalida!\n");
-                    printf("\t   > Pressione ENTER para continuar...");
-                    getchar();
-                    getchar();
-                    break;
-                }
+    gotoxy(20,10);
+    printf(CYN"*   "MAG "R:" RESETE"                            "CYN "*" RESETE);
+    gotoxy(28, 10);
+    imprimirResultado(&r);
 
-                break;
-
-            case 2:
-                printf("\n\n");
-                printf("\t   +---- menu desempilhar ----+\n");
-                printf("\t   | Pilha 1..............[1] |\n");
-                printf("\t   | Pilha 2..............[2] |\n");
-                printf("\t   +--------------------------+\n");
-
-                printf("\t   > Informe a pilha: ");
-                scanf("%d", &op2);
-
-                if (op2 == 1){
-                    valor = desempilhar(&pilha1);
-                    if(valor != 0){
-                        printf("\t   > Valor desempilhado: %d\n", valor);
-                    }else{
-                        printf("\t   > Pilha 1 esta vazia!\n");
-                    }
-                }else if (op2 == 2){
-                    valor = desempilhar(&pilha2);
-                    if(valor != 0){
-                        printf("\t   > Valor desempilhado: %d\n", valor);
-                    }else{
-                        printf("\t   > Pilha 2 esta vazia!\n");
-                    }
-                }else{
-                    printf("\t   > Opcao invalida!\n");
-                    printf("\t   > Pressione ENTER para continuar...");
-                    getchar();
-                    getchar();
-                }
-                
-                break;
-
-            case 3:
-                somarPilhas(&pilha1, &pilha2, &resultado);
-                break;
-
-            case 4:
-                printf("\n\n");
-                printf("\t   +----- menu imprimir -----+\n");   
-                printf("\t   | Pilha 1.............[1] |\n"); 
-                printf("\t   | Pilha 2.............[2] |\n");
-                printf("\t   +-------------------------+\n");
-                printf("\t   > Informe a pilha: ");
-                scanf("%d", &op2);
-                getchar();
-                
-                if(op2 == 1){
-                    printf("\n\n\t         ----- Pilha 1 ----\n");
-                    imprimirPilha(&pilha1);
-                }else if(op2 == 2){
-                    printf("\n\n\t         ----- Pilha 2 ----\n");
-                    imprimirPilha(&pilha2);
-                }else{
-                    printf("\t   > Opcao invalida!\n");
-                    printf("\t   > Pressione ENTER para continuar...");
-                    getchar();
-                    getchar();
-
-                }
-
-                break;
-
-            case 5:
-                printf("\n\n\t         ----- Resultado -----\n");
-                imprimirPilha(&resultado);
-                break;
-
-            case 6:
-                printf("\t> Saindo...\n");
-                break;
-
-            default:
-
-                printf("\t      > Opcao invalida!\n");
-                printf("\t      > Pressione ENTER para continuar...");
-                getchar();
-                getchar();
-
-        }
-
-    }while(op != 6);
-
-    return 0;
-}   
+    gotoxy(contC, 12);
+    printf(MAG "v" RESETE);
+    imprimirPilha(&r);
+    
+}
