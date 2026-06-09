@@ -1,13 +1,3 @@
-/*
-
-    Faça um programa para simular uma distribuição de arquivos. Esses arquivos devem ser divididos em pacotes e
-    enviados ao destino por um canal de comunicação. Cada pacote tem um tamanho máximo em bytes e o canal
-    transporta apenas um pacote por vez. Sendo assim, o usuário informará o tamanho do arquivo a ser transmitido,
-    então o simulador calculará quantos pacotes serão necessários para transportar pelo canal de um ponto de origem
-    a outro de destino, bem como mostrará visualmente essa transferência dos pacotes.
-
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -18,59 +8,53 @@
 #define BLU "\e[0;34m"
 #define RESETE "\e[0m"
 
-typedef struct no {
+typedef struct fila{
     int id;
-    int tamanho_bytes;
-    struct no* proximo;
-} No;
+    int tamB;
+    struct fila *prox;
+}Fila;
 
-typedef struct fila {
-    No *inicio;
-    No *fim;
-    int total_pacotes;
-} Fila;
+Fila *aux;
 
-void criarFila(Fila* f) {
-    f->inicio = NULL;
-    f->fim = NULL;
-    f->total_pacotes = 0;
-}
+int totalPacotes = 0, totalP_destino = 0;
 
-void enfileirar(Fila *f, int id, int tam) {
-    No *novo = (No*) malloc(sizeof(No));
-    if(novo) {
+void enfileirar(Fila *f, int id, int tam){
+   Fila *novo = malloc(sizeof(Fila));
+
+   if(novo == NULL){
+    printf("Erro ao alocar memoria!");
+
+   }else{
         novo->id = id;
-        novo->tamanho_bytes = tam;
-        novo->proximo = NULL;
-
-        if(f->inicio == NULL) {
-            f->inicio = novo;
-            f->fim = novo;
-        } else {
-            f->fim->proximo = novo;
-            f->fim = novo;
+        novo->tamB = tam;
+        novo->prox = NULL;
+        if(f->prox == NULL){
+            f->prox = novo;
+        }else{
+            aux = f->prox;
+            while(aux->prox != NULL){
+                aux = aux->prox;
+            }
+            aux->prox = novo;
         }
-        f->total_pacotes++;
-    } else {
-        printf("Erro ao alocar memoria!\n");
-    }
+   }
 }
 
-void desenfileirar(Fila *f, int *id, int *tam) {
-    if(f->inicio == NULL) {
+void desenfileirar(Fila *f, int *id, int *tam){
+    Fila *remover = NULL;
+    
+    if(f->prox == NULL){
         return;
-    }
-    No *remover = f->inicio;
-    f->inicio = remover->proximo;
-    f->total_pacotes--;
-
-    if(f->inicio == NULL) {
-        f->fim = NULL;
-    }
-
+    }else{
+    
+    remover = f->prox;
+    f->prox = remover->prox;
+    totalPacotes--;
     *id = remover->id;
-    *tam = remover->tamanho_bytes;
+    *tam = remover->tamB;
     free(remover);
+    }
+ 
 }
 
 void gotoxy(int x, int y) {
@@ -82,21 +66,21 @@ void gotoxy(int x, int y) {
 
 void desenharFilaOrigem(Fila *f) {
     gotoxy(2, 8);
-    printf("ORIGEM (" RED "%d" RESETE " pacotes)", f->total_pacotes);
+    printf("ORIGEM (" RED "%d" RESETE " pacotes)", totalPacotes);
     
     gotoxy(2, 9);
-    if (f->inicio == NULL){
+    if (f->prox == NULL){
         printf("                         ");
     } else{
-        No *atual = f->inicio;
-        int contador = 0;
+        aux = f->prox;
+        int contV = 0;
         
-        while(atual != NULL && contador < 4){
-            printf("[%d] ", atual->id);
-            atual = atual->proximo;
-            contador++;
+        while(aux != NULL && contV < 4){
+            printf("[%d] ", aux->id);
+            aux = aux->prox;
+            contV++;
         }
-         if (atual != NULL){
+         if (aux != NULL){
             printf("...                 "); 
         }else{
             printf("                    "); 
@@ -104,24 +88,23 @@ void desenharFilaOrigem(Fila *f) {
     }
 }
 
-void desenharFilaDestino(Fila *f) {
+void desenharFilaDestino(Fila *f){
     gotoxy(60, 8);
-    printf("DESTINO (" GRN "%d" RESETE " pacotes)", f->total_pacotes);
+    printf("DESTINO (" GRN "%d" RESETE " pacotes)", totalP_destino);
     
     gotoxy(60, 9);
-    if (f->inicio == NULL) {
+    if (f->prox == NULL) {
         printf("                    ");
     } else {
-        No *atual = f->inicio;
-        int contador = 0;
-        
-        while (atual != NULL && contador < 4) {
-            printf("[%d] ", atual->id);
-            atual = atual->proximo;
-            contador++;
+        aux = f->prox;
+        int contV = 0;
+        while (aux != NULL && contV < 4){
+            printf("[%d] ", aux->id);
+            aux = aux->prox;
+            contV++;
         }
         
-        if (atual != NULL) {
+        if (aux != NULL) {
             printf("..."); 
         } else {
             printf("   "); 
@@ -129,12 +112,14 @@ void desenharFilaDestino(Fila *f) {
     }
 }
 
-int main() {
-    Fila fila_origem, fila_destino;
-    criarFila(&fila_origem);
-    criarFila(&fila_destino);
+int main(){
 
-    int tamArq, tamPac = 1024, id = 1;
+    Fila filaOrigem, filaDestino;
+    
+    filaOrigem.prox = NULL;
+    filaDestino.prox = NULL;
+    
+    int tamArq, tamPac, id = 1, totalTemp;
 
     gotoxy(20, 2);
     printf("*****************************************");
@@ -148,40 +133,48 @@ int main() {
     printf("*****************************************");  
     gotoxy(10, 8);
     printf("> Informe o tamanho do arquivo a ser enviado:           (" RED "em bytes" RESETE ") ");
+    gotoxy(10, 9);
+    printf("> Informe o tamnho maximo dos pacotes: ");
     
     gotoxy(56, 8);
     scanf("%d", &tamArq);
     getchar();
 
-    while(tamArq > 0) {
+    gotoxy(49, 9);
+    scanf("%d", &tamPac);
+    getchar();
+
+    while(tamArq > 0){
         
         int tamPacAtual;
 
-        if(tamArq >= tamPac) {
+        if(tamArq >= tamPac){
             tamPacAtual = tamPac;
-        } else {
+        }else{
             tamPacAtual = tamArq;
         }
 
-        enfileirar(&fila_origem, id, tamPacAtual);
+        enfileirar(&filaOrigem, id, tamPacAtual);
         tamArq -= tamPacAtual;
         id++;
+        totalPacotes++;
     }
 
-    gotoxy(18, 10);
-    printf("*********************************************");
+    totalTemp = totalPacotes;
     gotoxy(18, 11);
-    printf("* O arquivo foi dividido em     pacote(s)   *");
+    printf("*********************************************");
     gotoxy(18, 12);
-    printf("* Todos os pacotes estao na fila de " GRN "ORIGEM" RESETE "  *");
+    printf("* O arquivo foi dividido em     pacote(s)   *");
     gotoxy(18, 13);
+    printf("* Todos os pacotes estao na fila de " GRN "ORIGEM" RESETE "  *");
+    gotoxy(18, 14);
     printf("*********************************************");
     
-    gotoxy(46, 11);
-    printf(RED "%d" RESETE, fila_origem.total_pacotes);
+    gotoxy(46, 12);
+    printf(RED "%d" RESETE, totalPacotes);
 
-    gotoxy(20, 15);
-    printf("> Pressione " YEL "ENTER" RESETE " para comecar a simulacao visual...");
+    gotoxy(18, 17);
+    printf("Pressione " YEL "ENTER" RESETE " para comecar a simulacao visual...");
     getchar();
 
     system("cls");
@@ -197,47 +190,47 @@ int main() {
     gotoxy(0, 6);
     printf("*********************************************************************************");  
     gotoxy(0, 7);
-    printf("*                                                                               *");
+    printf("*-------------------------------------------------------------------------------*");
     gotoxy(0, 8);
     printf("*                                                                               *");
     gotoxy(0, 9);
     printf("*                                                                               *");
     gotoxy(0, 10);
-    printf("*                                                                               *");
+    printf("*-------------------------------------------------------------------------------*");
     gotoxy(0, 11);
     printf("*********************************************************************************");
     
-    while(fila_origem.total_pacotes > 0) {
+    while(totalPacotes > 0){
         int idAtual, tamAtual;
         
-        desenfileirar(&fila_origem, &idAtual, &tamAtual);
+        desenfileirar(&filaOrigem, &idAtual, &tamAtual);
         
-        desenharFilaOrigem(&fila_origem);
-        desenharFilaDestino(&fila_destino);
+        desenharFilaOrigem(&filaOrigem);
+        desenharFilaDestino(&filaDestino);
         
         gotoxy(14, 12);
         printf("* Transmitindo Pacote ID:   | Tamanho:       bytes  *");
         gotoxy(14, 13);
         printf("*****************************************************");
 
-        gotoxy(41,12);
+        gotoxy(40,12);
         printf(BLU "%d" RESETE, idAtual);
-        gotoxy(54,12);
+        gotoxy(53,12);
         printf(BLU "%d" RESETE, tamAtual);
 
         for(int x = 22; x <= 60; x++) {
             gotoxy(x, 9);
-            printf("[P%d]", idAtual); 
+            printf(GRN ">[P%d]>>" RESETE, idAtual); 
             
             Sleep(150); 
             
             gotoxy(x, 9);
             printf("     "); 
         }
+        totalP_destino++;
+        enfileirar(&filaDestino, idAtual, tamAtual);
         
-        enfileirar(&fila_destino, idAtual, tamAtual);
-        
-        desenharFilaDestino(&fila_destino);
+        desenharFilaDestino(&filaDestino);
     }
 
     gotoxy(18, 15);
@@ -256,7 +249,7 @@ int main() {
     printf("*****************************************");  
     
     gotoxy(18, 24);
-    printf(" > Total de %d pacote(s) chegaram ao destino.", fila_destino.total_pacotes);
+    printf(" > Total de %d pacote(s) chegaram ao destino.", totalTemp);
    
     return 0;
 }
